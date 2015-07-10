@@ -120,14 +120,14 @@ namespace Taslagrad
             this.watch.Reset(); //Resets the timer
             this.watch.Start(); //Starts the timer (yeah, pretty obvious)
             IEnumerator<long> enumerator = this.playedKeys.Keys.GetEnumerator(); //The playedKeys enumerator. Used to jump from one frame to another.
-            long t; //Will receive the elapsed milliseconds, to track desync.
+            long t; //Will receive the elapsed tickss, to track desync.
             while (enumerator.MoveNext()) //Moves the pointer of the playedKeys dictionnary to the next entry (so, to the next frame).
             {
-                Thread.Sleep((int)(enumerator.Current - this.currentFrame - 1)); //The thread sleeps until the millisecond before the next frame. For exemple, if there is an input at the 42th millisecond, the thread will sleep to the 41st millisecond. Seems optionnal, since we have a "while" that waits, but it allows to consume less ressources. Also, in a too long "while", the processor tends to "forget" the thread for a long time, resulting in desyncs.
-                while (this.watch.ElapsedMilliseconds < enumerator.Current) { } //We wait until the very precise millisecond that we want
-                t = this.watch.ElapsedMilliseconds; //We save the actual millisecond
+                //Thread.Sleep((int)(enumerator.Current - this.currentFrame - 1)); //The thread sleeps until the ticks before the next frame. For exemple, if there is an input at the 42th ticks, the thread will sleep to the 41st ticks. Seems optionnal, since we have a "while" that waits, but it allows to consume less ressources. Also, in a too long "while", the processor tends to "forget" the thread for a long time, resulting in desyncs.
+                while (this.watch.ElapsedTicks < enumerator.Current) { } //We wait until the very precise ticks that we want
+                t = this.watch.ElapsedTicks; //We save the actual ticks
                 uint err = SendInput((UInt32)this.playedKeys[enumerator.Current].Length, this.playedKeys[enumerator.Current], Marshal.SizeOf(typeof(INPUT))); //Simulate the inputs of the actual frame
-                if (t != enumerator.Current) // We compare the saved time with the supposed millisecond. If they are different, we have a desync, so we log some infos to track the bug.
+                if (t != enumerator.Current) // We compare the saved time with the supposed ticks. If they are different, we have a desync, so we log some infos to track the bug.
                 {
                     Console.WriteLine("DESYNC : " + t + "/" + enumerator.Current + " - Inputs : " + err);
                 }

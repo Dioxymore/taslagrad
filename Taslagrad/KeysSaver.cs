@@ -15,8 +15,8 @@ class KeysSaver
 {
     public static IntPtr KEYUP = (IntPtr)0x0101; // Code of the "key up" signal
     public static IntPtr KEYDOWN = (IntPtr)0x0100; // Code of the "key down" signal
-    private Stopwatch watch; // Timer used to trace at which millisecond each key have been pressed
-    private Dictionary<long, Dictionary<Keys, IntPtr>> savedKeys; // Recorded keys activity, indexed by the millisecond the have been pressed. The activity is indexed by the concerned key ("Keys" type) and is associated with the activity code (0x0101 for "key up", 0x0100 for "key down").
+    private Stopwatch watch; // Timer used to trace at which ticks each key have been pressed
+    private Dictionary<long, Dictionary<Keys, IntPtr>> savedKeys; // Recorded keys activity, indexed by the ticks the have been pressed. The activity is indexed by the concerned key ("Keys" type) and is associated with the activity code (0x0101 for "key up", 0x0100 for "key down").
     private IntPtr hookId; // Hook used to listen to the keyboard
 
     private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam); // Imported type : LowLevelKeyboardProc. Now we can use this type.
@@ -73,12 +73,12 @@ class KeysSaver
     {
         if (nCode >= 0) //We check the validity of the informations. If >= 0, we can use them.
         {
-            long time = this.watch.ElapsedMilliseconds; //Number of milliseconds elapsed since we called the Start() method
+            long time = this.watch.ElapsedTicks; //Number of ticks elapsed since we called the Start() method
             int vkCode = Marshal.ReadInt32(lParam); //We read the value associated with the pointer (?)
             Keys key = (Keys)vkCode; //We convert the int to the Keys type
             if (!this.savedKeys.ContainsKey(time))
             {
-                // If no key activity have been detected for this millisecond yet, we create the entry in the savedKeys Dictionnary
+                // If no key activity have been detected for this tick yet, we create the entry in the savedKeys Dictionnary
                 this.savedKeys.Add(time, new Dictionary<Keys, IntPtr>());
             }
             this.savedKeys[time].Add(key, wParam); //Saves the key and the activity
