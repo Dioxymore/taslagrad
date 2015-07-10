@@ -71,9 +71,9 @@ class KeysSaver
      */
     private IntPtr onActivity(int nCode, IntPtr wParam, IntPtr lParam)
     {
+        long time = this.watch.ElapsedTicks; //Number of ticks elapsed since we called the Start() method
         if (nCode >= 0) //We check the validity of the informations. If >= 0, we can use them.
         {
-            long time = this.watch.ElapsedTicks; //Number of ticks elapsed since we called the Start() method
             int vkCode = Marshal.ReadInt32(lParam); //We read the value associated with the pointer (?)
             Keys key = (Keys)vkCode; //We convert the int to the Keys type
             if (!this.savedKeys.ContainsKey(time))
