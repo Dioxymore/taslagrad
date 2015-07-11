@@ -18,6 +18,7 @@ class KeysSaver
     private Stopwatch watch; // Timer used to trace at which ticks each key have been pressed
     private Dictionary<long, Dictionary<Keys, IntPtr>> savedKeys; // Recorded keys activity, indexed by the ticks the have been pressed. The activity is indexed by the concerned key ("Keys" type) and is associated with the activity code (0x0101 for "key up", 0x0100 for "key down").
     private IntPtr hookId; // Hook used to listen to the keyboard
+    private List<Keys> currentDown; // Track the keys that are already down, used for optimization (a maintened key down fires the "keydown" event a lot)
 
     private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam); // Imported type : LowLevelKeyboardProc. Now we can use this type.
 
@@ -29,6 +30,7 @@ class KeysSaver
     {
         this.savedKeys = new Dictionary<long, Dictionary<Keys, IntPtr>>();
         this.watch = new Stopwatch();
+        this.currentDown = new List<Keys>();
     }
 
     /*
@@ -76,12 +78,23 @@ class KeysSaver
         {
             int vkCode = Marshal.ReadInt32(lParam); //We read the value associated with the pointer (?)
             Keys key = (Keys)vkCode; //We convert the int to the Keys type
-            if (!this.savedKeys.ContainsKey(time))
+            if (wParam == KeysSaver.KEYUP || (wParam == KeysSaver.KEYDOWN && !this.currentDown.Contains(key)))
             {
-                // If no key activity have been detected for this tick yet, we create the entry in the savedKeys Dictionnary
-                this.savedKeys.Add(time, new Dictionary<Keys, IntPtr>());
+                if (!this.savedKeys.ContainsKey(time))
+                {
+                    // If no key activity have been detected for this tick yet, we create the entry in the savedKeys Dictionnary
+                    this.savedKeys.Add(time, new Dictionary<Keys, IntPtr>());
+                }
+                this.savedKeys[time].Add(key, wParam); //Saves the key and the activity
+                if (wParam == KeysSaver.KEYDOWN)
+                {
+                    this.currentDown.Add(key);
+                }
+                else
+                {
+                    this.currentDown.Remove(key);
+                }
             }
-            this.savedKeys[time].Add(key, wParam); //Saves the key and the activity
         }
         return CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam); //Bubbles the informations for others applications using similar hooks
     }

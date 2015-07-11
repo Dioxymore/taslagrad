@@ -96,7 +96,6 @@ namespace Taslagrad
         private Dictionary<long, Dictionary<Keys, IntPtr>> keysToPlay; // Keys to play, with the timing. See KeysSaver.savedKeys for more informations.
         private Dictionary<long, INPUT[]> playedKeys; // The inputs that will be played. This is a "translation" of keysToPlay, transforming Keys into Inputs.
         private Stopwatch watch; // Timer used to respect the strokes timing.
-        private long currentFrame; // While playing, keeps the last keysToPlay frame that have been played.
 
         /*
          * Constructor 
@@ -106,7 +105,6 @@ namespace Taslagrad
             this.keysToPlay = keysToPlay;
             this.playedKeys = new Dictionary<long, INPUT[]>();
             this.watch = new Stopwatch();
-            this.currentFrame = 0;
             this.loadPlayedKeys(); //Load the keys that will be played.
         }
 
@@ -116,22 +114,19 @@ namespace Taslagrad
          */
         public void Start()
         {
-            this.currentFrame = 0;  //currentFrame is 0 at the beginning.
             this.watch.Reset(); //Resets the timer
             this.watch.Start(); //Starts the timer (yeah, pretty obvious)
             IEnumerator<long> enumerator = this.playedKeys.Keys.GetEnumerator(); //The playedKeys enumerator. Used to jump from one frame to another.
             long t; //Will receive the elapsed tickss, to track desync.
             while (enumerator.MoveNext()) //Moves the pointer of the playedKeys dictionnary to the next entry (so, to the next frame).
             {
-                //Thread.Sleep((int)(enumerator.Current - this.currentFrame - 1)); //The thread sleeps until the ticks before the next frame. For exemple, if there is an input at the 42th ticks, the thread will sleep to the 41st ticks. Seems optionnal, since we have a "while" that waits, but it allows to consume less ressources. Also, in a too long "while", the processor tends to "forget" the thread for a long time, resulting in desyncs.
                 while (this.watch.ElapsedTicks < enumerator.Current) { } //We wait until the very precise ticks that we want
                 t = this.watch.ElapsedTicks; //We save the actual ticks
                 uint err = SendInput((UInt32)this.playedKeys[enumerator.Current].Length, this.playedKeys[enumerator.Current], Marshal.SizeOf(typeof(INPUT))); //Simulate the inputs of the actual frame
                 if (t != enumerator.Current) // We compare the saved time with the supposed ticks. If they are different, we have a desync, so we log some infos to track the bug.
                 {
-                    Console.WriteLine("DESYNC : " + t + "/" + enumerator.Current + " - Inputs : " + err);
+                    Console.WriteLine("DESYNC : " + t + "/" + enumerator.Current + " - Inputs : " + this.playedKeys[enumerator.Current].ToString());
                 }
-                this.currentFrame = enumerator.Current; //Updates the currentFrame to the frame we just played.
             }
         }
 
