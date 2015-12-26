@@ -16,7 +16,8 @@ namespace Taslagrad
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Taslagrad());
+            Taslagrad t = new Taslagrad();
+            Application.Run(t);
         }
     }
 }

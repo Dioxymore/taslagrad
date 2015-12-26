@@ -44,7 +44,7 @@ class KeysSaver
         using (Process curProcess = Process.GetCurrentProcess())
         using (ProcessModule curModule = curProcess.MainModule) // Get the actual thread
         {
-            // Installs a hook to the keyboard (the "13" params means "keyboard", see the link above for the codes), by saying "Hey, I want the function 'onActivity' being called at each activity. You can find this function in the actual thread (GetModuleHandle(curModule.ModuleName)), and you listen to the keyboard activity of ALL the treads (code : 0)
+            // Installs a hook to the keyboard (the "13" params means "keyboard", see the link above for the codes). This is literaly saying "Hey, I want the function 'onActivity' being called at each activity. You can find this function in the actual thread (GetModuleHandle(curModule.ModuleName)), and you listen to the keyboard activity of ALL the treads (code : 0)"
             this.hookId = SetWindowsHookEx(13, onActivity, GetModuleHandle(curModule.ModuleName), 0);
         }
         this.watch.Start(); // Starts the timer
